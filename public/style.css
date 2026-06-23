@@ -184,6 +184,11 @@ select, input {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+select option {
+  background-color: #0e1124; /* Dark solid color matching the theme */
+  color: var(--text-primary); /* Light text color for contrast */
+}
+
 select:focus, input:focus {
   outline: none;
   border-color: var(--primary-color);
