@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ApexCatalog | Keyset Paginated Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="header-logo">
+        <span class="logo-icon">▲</span>
+        <h1>ApexCatalog</h1>
+        <span class="badge-tech">MongoDB Keyset Pagination</span>
+      </div>
+      <div class="header-stats">
+        <div class="stat-card">
+          <span class="stat-label">Total Database Products</span>
+          <span class="stat-value" id="stat-total-products">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">DB Fetch Time</span>
+          <span class="stat-value text-accent" id="stat-query-time">0 ms</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-content">
+      <!-- Left Panel: Controls & Add Product -->
+      <aside class="control-panel">
+        <div class="card panel-card">
+          <h3>Filter & Settings</h3>
+          <div class="form-group">
+            <label for="filter-category">Category</label>
+            <select id="filter-category">
+              <option value="">All Categories</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="filter-limit">Items Per Page</label>
+            <select id="filter-limit">
+              <option value="10">10 items</option>
+              <option value="20" selected>20 items</option>
+              <option value="50">50 items</option>
+              <option value="100">100 items</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card panel-card add-product-card">
+          <h3>Quick Add Product</h3>
+          <p class="panel-desc">Test real-time pagination stability. Newly added products appear at the top without shifting existing page results.</p>
+          <form id="add-product-form">
+            <div class="form-group">
+              <label for="new-name">Product Name</label>
+              <input type="text" id="new-name" placeholder="e.g. Ultra Gaming Keyboard" required>
+            </div>
+            <div class="form-group">
+              <label for="new-category">Category</label>
+              <select id="new-category" required>
+                <!-- Loaded dynamically -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="new-price">Price ($)</label>
+              <input type="number" id="new-price" step="0.01" min="0.01" placeholder="e.g. 89.99" required>
+            </div>
+            <button type="submit" class="btn btn-primary" id="btn-submit-product">Add Product</button>
+          </form>
+          <div id="add-product-success" class="alert alert-success hidden">Product added!</div>
+        </div>
+      </aside>
+
+      <!-- Right Panel: Product Grid & Pagination -->
+      <section class="catalog-section">
+        <div class="catalog-header">
+          <h2>Product Stream <span class="subtext">(Newest First)</span></h2>
+          <div class="pagination-info" id="pagination-page-display">Page 1</div>
+        </div>
+
+        <div class="products-grid" id="products-container">
+          <!-- Products will be dynamically populated here -->
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading products...</p>
+          </div>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="pagination-controls">
+          <button id="btn-prev" class="btn btn-secondary" disabled>← Previous Page</button>
+          <button id="btn-next" class="btn btn-primary">Next Page →</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

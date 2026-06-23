@@ -1,0 +1,16 @@
+{
+  "name": "mongodb-product-catalog",
+  "version": "1.0.0",
+  "description": "Fast paginated product catalog with MongoDB backend and a premium UI dashboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "seed": "node seed.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mongodb": "^6.8.0"
+  }
+}
