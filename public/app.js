@@ -111,7 +111,7 @@ async function loadProducts() {
   showLoading();
   
   const cursor = cursorStack[currentPage - 1] || '';
-  const url = `/api/products?limit=${currentLimit}&category=${currentCategory}&cursor=${encodeURIComponent(cursor)}`;
+  const url = `/api/products?limit=${currentLimit}&category=${encodeURIComponent(currentCategory)}&cursor=${encodeURIComponent(cursor)}`;
   
   try {
     const res = await fetch(url);
