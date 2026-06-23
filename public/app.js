@@ -126,10 +126,12 @@ function renderProducts(products) {
       </div>
       <div class="card-footer">
         <div class="card-meta">
-          <span class="card-id">ID: ${escapeHTML(p.id)}</span>
+          <div class="card-price">$${Number(p.price).toFixed(2)}</div>
           <span class="card-time">${timeStr}</span>
         </div>
-        <div class="card-price">$${Number(p.price).toFixed(2)}</div>
+        <button class="btn-add-to-cart" data-id="${p.id}" data-name="${escapeHTML(p.name)}" data-price="${p.price}">
+          Add to Cart
+        </button>
       </div>
     `;
     
@@ -263,3 +265,163 @@ addProductForm.addEventListener('submit', async (e) => {
     btnSubmitProduct.textContent = 'Add Product';
   }
 });
+
+// ==========================================
+// SHOPPING CART LOGIC
+// ==========================================
+
+let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+// Initialize Cart UI on load
+window.addEventListener('DOMContentLoaded', () => {
+  renderCart();
+});
+
+// Event Delegation for "Add to Cart" buttons in products container
+productsContainer.addEventListener('click', (e) => {
+  const btn = e.target.closest('.btn-add-to-cart');
+  if (btn) {
+    const id = btn.getAttribute('data-id');
+    const name = btn.getAttribute('data-name');
+    const price = parseFloat(btn.getAttribute('data-price'));
+    addToCart(id, name, price);
+  }
+});
+
+function saveCart() {
+  localStorage.setItem('cart', JSON.stringify(cart));
+}
+
+function addToCart(id, name, price) {
+  const existingItem = cart.find(item => item.id === id);
+  if (existingItem) {
+    existingItem.quantity += 1;
+  } else {
+    cart.push({ id, name, price, quantity: 1 });
+  }
+  saveCart();
+  renderCart();
+  showToast(`Added "${name}" to cart!`);
+}
+
+function removeFromCart(id) {
+  const item = cart.find(item => item.id === id);
+  const name = item ? item.name : 'Item';
+  cart = cart.filter(item => item.id !== id);
+  saveCart();
+  renderCart();
+  showToast(`Removed "${name}" from cart.`, 'info');
+}
+
+function updateQuantity(id, change) {
+  const item = cart.find(item => item.id === id);
+  if (item) {
+    item.quantity += change;
+    if (item.quantity <= 0) {
+      removeFromCart(id);
+    } else {
+      saveCart();
+      renderCart();
+    }
+  }
+}
+
+function clearCart() {
+  if (cart.length === 0) return;
+  cart = [];
+  saveCart();
+  renderCart();
+  showToast('Cart cleared.', 'info');
+}
+
+function checkout() {
+  if (cart.length === 0) return;
+  
+  // Create checkout visual confirmation
+  showToast('Processing checkout...', 'success');
+  
+  setTimeout(() => {
+    alert(`Checkout successful! Thank you for buying ${cart.reduce((sum, item) => sum + item.quantity, 0)} items.`);
+    cart = [];
+    saveCart();
+    renderCart();
+  }, 1000);
+}
+
+function renderCart() {
+  const cartItemsEl = document.getElementById('cart-items');
+  const cartCountEl = document.getElementById('cart-count');
+  const cartSummaryEl = document.getElementById('cart-summary');
+  const cartTotalPriceEl = document.getElementById('cart-total-price');
+  
+  if (!cartItemsEl || !cartCountEl || !cartSummaryEl || !cartTotalPriceEl) return;
+
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  
+  cartCountEl.textContent = totalItems;
+  
+  if (cart.length === 0) {
+    cartItemsEl.innerHTML = `<p class="empty-cart-msg">Your cart is empty.</p>`;
+    cartSummaryEl.classList.add('hidden');
+    return;
+  }
+  
+  cartSummaryEl.classList.remove('hidden');
+  cartTotalPriceEl.textContent = `$${totalPrice.toFixed(2)}`;
+  
+  cartItemsEl.innerHTML = '';
+  cart.forEach(item => {
+    const itemEl = document.createElement('div');
+    itemEl.className = 'cart-item';
+    itemEl.innerHTML = `
+      <div class="cart-item-info">
+        <div class="cart-item-name" title="${escapeHTML(item.name)}">${escapeHTML(item.name)}</div>
+        <div class="cart-item-price">$${(item.price * item.quantity).toFixed(2)} (${item.quantity} x $${item.price.toFixed(2)})</div>
+      </div>
+      <div class="cart-item-controls">
+        <button class="cart-qty-btn" onclick="updateQuantity('${item.id}', -1)">−</button>
+        <span class="cart-qty">${item.quantity}</span>
+        <button class="cart-qty-btn" onclick="updateQuantity('${item.id}', 1)">＋</button>
+        <button class="cart-remove-btn" onclick="removeFromCart('${item.id}')">✕</button>
+      </div>
+    `;
+    cartItemsEl.appendChild(itemEl);
+  });
+}
+
+// Toast Popup system
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  
+  let icon = '🛒';
+  if (type === 'info') icon = 'ℹ️';
+  if (type === 'error') icon = '❌';
+
+  toast.innerHTML = `
+    <span class="toast-icon">${icon}</span>
+    <span class="toast-message">${escapeHTML(message)}</span>
+  `;
+
+  container.appendChild(toast);
+
+  // Auto remove after 3s
+  setTimeout(() => {
+    toast.classList.add('fade-out');
+    toast.addEventListener('animationend', () => {
+      toast.remove();
+    });
+  }, 3000);
+}
+
+// Bind Cart Action Buttons
+document.getElementById('btn-clear-cart').addEventListener('click', clearCart);
+document.getElementById('btn-checkout').addEventListener('click', checkout);
+
+// Expose functions globally for onclick attributes
+window.updateQuantity = updateQuantity;
+window.removeFromCart = removeFromCart;

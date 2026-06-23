@@ -51,6 +51,27 @@
           </div>
         </div>
 
+        <!-- Shopping Cart Panel -->
+        <div class="card panel-card cart-card">
+          <div class="cart-header">
+            <h3>Shopping Cart</h3>
+            <span class="cart-count-badge" id="cart-count">0</span>
+          </div>
+          <div id="cart-items" class="cart-items-container">
+            <p class="empty-cart-msg">Your cart is empty.</p>
+          </div>
+          <div class="cart-summary hidden" id="cart-summary">
+            <div class="cart-total">
+              <span>Total:</span>
+              <span id="cart-total-price">$0.00</span>
+            </div>
+            <div class="cart-actions">
+              <button class="btn btn-secondary btn-sm" id="btn-clear-cart">Clear</button>
+              <button class="btn btn-primary btn-sm" id="btn-checkout">Checkout</button>
+            </div>
+          </div>
+        </div>
+
         <div class="card panel-card add-product-card">
           <h3>Quick Add Product</h3>
           <p class="panel-desc">Test real-time pagination stability. Newly added products appear at the top without shifting existing page results.</p>
@@ -98,7 +119,7 @@
       </section>
     </main>
   </div>
-
+  <div id="toast-container" class="toast-container"></div>
   <script src="app.js"></script>
 </body>
 </html>
