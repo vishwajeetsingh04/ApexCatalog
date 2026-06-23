@@ -19,8 +19,46 @@ const addProductForm = document.getElementById('add-product-form');
 const addProductSuccess = document.getElementById('add-product-success');
 const btnSubmitProduct = document.getElementById('btn-submit-product');
 
+// DummyJSON API Mappings
+const categoryMap = {
+  'Electronics': ['laptops', 'mobile-accessories', 'smartphones'],
+  'Clothing': ['mens-shirts', 'mens-shoes', 'womens-dresses', 'womens-shoes', 'womens-bags'],
+  'Home & Kitchen': ['furniture', 'home-decoration', 'kitchen-accessories'],
+  'Books': ['books'],
+  'Sports & Outdoors': ['sports-accessories'],
+  'Beauty & Personal Care': ['beauty', 'fragrances', 'skincare'],
+  'Automotive': ['automotive', 'motorcycle'],
+  'Toys & Games': ['toys']
+};
+
+const PRODUCT_NAMES_FALLBACK = {
+  'Electronics': ['Wireless Headphones', 'Smart Watch', 'Bluetooth Speaker', '4K Monitor', 'Mechanical Keyboard', 'Gaming Mouse', 'USB-C Hub', 'Smartphone Stand'],
+  'Clothing': ['Classic T-Shirt', 'Denim Jacket', 'Running Shoes', 'Wool Socks', 'Leather Belt', 'Slim Fit Jeans', 'Summer Dress', 'Windbreaker'],
+  'Home & Kitchen': ['Coffee Maker', 'Air Fryer', 'Chef Knife Set', 'Stainless Steel Pan', 'Food Storage Containers', 'Blender', 'Toaster Oven', 'Electric Kettle'],
+  'Books': ['Sci-Fi Novel', 'History Biography', 'Cooking Recipes', 'Self-Help Guide', 'Mystery Thriller', 'Business Strategy', 'Children Storybook', 'Poetry Collection'],
+  'Sports & Outdoors': ['Water Bottle', 'Yoga Mat', 'Resistance Bands', 'Sleeping Bag', 'Camping Tent', 'Hiking Backpack', 'Dumbbell Set', 'Bicycle Pump'],
+  'Beauty & Personal Care': ['Face Moisturizer', 'Shampoo', 'Conditioner', 'Sunscreens', 'Lip Balm', 'Scented Candle', 'Electric Toothbrush', 'Hair Dryer'],
+  'Automotive': ['Car Phone Mount', 'Microfiber Towels', 'Windshield Wipers', 'Car Vacuum Cleaner', 'Seat Organizer', 'Tire Pressure Gauge', 'Dashboard Camera', 'Jump Starter'],
+  'Toys & Games': ['Board Game', 'Jigsaw Puzzle', 'Building Blocks', 'Action Figure', 'Card Game', 'Remote Control Car', 'Plush Toy', 'Drawing Board']
+};
+
+let apiProductsCache = [];
+
+async function initApiCache() {
+  try {
+    const res = await fetch('https://dummyjson.com/products?limit=100');
+    const data = await res.json();
+    if (data && data.products) {
+      apiProductsCache = data.products;
+    }
+  } catch (err) {
+    console.warn('Failed to load DummyJSON products, using local fallback:', err);
+  }
+}
+
 // Initialize page
 window.addEventListener('DOMContentLoaded', async () => {
+  await initApiCache();
   await loadStats();
   await loadProducts();
 });
@@ -427,6 +465,50 @@ window.updateQuantity = updateQuantity;
 window.removeFromCart = removeFromCart;
 
 // Simulate real-time data drift (50 products added in background)
+// Helper to generate N unique product names for a category using DummyJSON data + fallback
+function generateUniqueProductNames(category, count) {
+  const targetApiCats = categoryMap[category] || [];
+  let availableItems = apiProductsCache.filter(p => targetApiCats.includes(p.category));
+  const fallbackList = PRODUCT_NAMES_FALLBACK[category] || ['Generic Item'];
+  
+  const baseNames = [];
+  availableItems.forEach(item => baseNames.push(item.title));
+  
+  // Mix in fallbacks if cache is dry or too small
+  while (baseNames.length < count * 2) {
+    baseNames.push(...fallbackList);
+  }
+  
+  // Shuffle baseNames
+  baseNames.sort(() => Math.random() - 0.5);
+  
+  const uniqueNames = new Set();
+  let attempt = 0;
+  const modifiers = ['Pro', 'Ultra', 'Max', 'Plus', 'Lite', 'Elite', 'Prime', 'X', 'Edition', 'Special', 'Advanced', 'Classic', 'Sleek', 'Deluxe', 'Premium'];
+  
+  while (uniqueNames.size < count && attempt < 1000) {
+    const base = baseNames[attempt % baseNames.length];
+    const mod = modifiers[Math.floor(Math.random() * modifiers.length)];
+    const num = Math.floor(Math.random() * 900) + 100;
+    
+    let name = '';
+    const choice = attempt % 3;
+    if (choice === 0) {
+      name = `${base} ${mod}`;
+    } else if (choice === 1) {
+      name = `${base} (${mod} #${num})`;
+    } else {
+      name = `${mod} ${base}`;
+    }
+    
+    uniqueNames.add(name);
+    attempt++;
+  }
+  
+  return Array.from(uniqueNames);
+}
+
+// Simulate real-time data drift (50 products added in background)
 async function simulateBackgroundAdditions() {
   const btn = document.getElementById('btn-simulate-additions');
   const feedback = document.getElementById('drift-simulation-feedback');
@@ -436,15 +518,36 @@ async function simulateBackgroundAdditions() {
   btn.textContent = 'Simulating...';
   feedback.innerHTML = '';
 
-  showToast('Adding 50 products in background...', 'info');
+  // Determine target category
+  const targetCategory = currentCategory || 'All Categories';
+  showToast(`Adding 50 unique products to "${targetCategory}" in background...`, 'info');
 
-  const categories = ['Electronics', 'Clothing', 'Home & Kitchen', 'Books', 'Sports & Outdoors'];
+  const categories = Object.keys(categoryMap);
   const promises = [];
 
+  // Generate 50 unique names
+  let names = [];
+  if (currentCategory) {
+    names = generateUniqueProductNames(currentCategory, 50);
+  } else {
+    // Generate names across random categories
+    for (let i = 0; i < 50; i++) {
+      const randomCat = categories[Math.floor(Math.random() * categories.length)];
+      const singleName = generateUniqueProductNames(randomCat, 1)[0];
+      names.push({ name: singleName, category: randomCat });
+    }
+  }
+
   for (let i = 0; i < 50; i++) {
-    const name = `Background Product #${i + 1} (Simulated Live)`;
-    const category = categories[Math.floor(Math.random() * categories.length)];
-    const price = parseFloat((Math.random() * 200 + 5.99).toFixed(2));
+    const name = currentCategory ? names[i] : names[i].name;
+    const category = currentCategory ? currentCategory : names[i].category;
+    
+    // Attempt to pull a price from API products or random double
+    let price = parseFloat((Math.random() * 200 + 5.99).toFixed(2));
+    const matchedApi = apiProductsCache.find(p => p.title === name.split(' ')[0]);
+    if (matchedApi) {
+      price = matchedApi.price;
+    }
 
     promises.push(
       fetch('/api/products', {
@@ -459,13 +562,13 @@ async function simulateBackgroundAdditions() {
     const results = await Promise.all(promises);
     const successCount = results.filter(r => r.success).length;
 
-    showToast(`Added ${successCount} products at the top!`, 'success');
+    showToast(`Added ${successCount} products to "${targetCategory}"!`, 'success');
     await loadStats(); // Update total count badge in UI
 
     feedback.innerHTML = `
       <div class="alert alert-success" style="margin-top: 0.5rem; line-height: 1.4; border-radius: 8px; font-size: 0.8rem; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: #a7f3d0; padding: 0.75rem;">
         <strong>🎉 Drift Test Complete!</strong><br>
-        Inserted <strong>${successCount} products</strong> at the top of the database.<br>
+        Inserted <strong>50 UNIQUE products</strong> into <strong>"${targetCategory}"</strong> at the top of the database.<br>
         Notice that your current page contents did NOT shift or jump. Click <strong>Next Page</strong> and <strong>Previous Page</strong> to verify there are <strong>zero duplicates or missed products</strong>!
       </div>
     `;
@@ -478,8 +581,36 @@ async function simulateBackgroundAdditions() {
   }
 }
 
-// Bind stability demo buttons
+// Autofill Quick Add form using DummyJSON API data
+function autofillFromApi() {
+  const category = newCategoryEl.value;
+  if (!category) return;
+  
+  // Generate 1 unique product name
+  const name = generateUniqueProductNames(category, 1)[0];
+  
+  // Determine a matching price if we can find one in the API cache, or fallback to randomized
+  let price = parseFloat((Math.random() * 150 + 9.99).toFixed(2));
+  const targetApiCats = categoryMap[category] || [];
+  const matchedApiItems = apiProductsCache.filter(p => targetApiCats.includes(p.category));
+  if (matchedApiItems.length > 0) {
+    price = matchedApiItems[Math.floor(Math.random() * matchedApiItems.length)].price;
+  }
+  
+  // Fill input fields
+  document.getElementById('new-name').value = name;
+  document.getElementById('new-price').value = price;
+  
+  showToast(`Suggested: "${name}" for $${price}`, 'info');
+}
+
+// Bind stability demo & autofill buttons
 const btnSimulateAdditions = document.getElementById('btn-simulate-additions');
 if (btnSimulateAdditions) {
   btnSimulateAdditions.addEventListener('click', simulateBackgroundAdditions);
+}
+
+const btnAutofillApi = document.getElementById('btn-autofill-api');
+if (btnAutofillApi) {
+  btnAutofillApi.addEventListener('click', autofillFromApi);
 }

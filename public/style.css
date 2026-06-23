@@ -705,3 +705,21 @@ select:focus, input:focus {
 .stability-demo-card .demo-actions .btn {
   width: 100%;
 }
+
+/* Autofill Button Style */
+.btn-api-fill {
+  background: transparent;
+  border: none;
+  color: var(--accent-color);
+  font-family: var(--font-family-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.btn-api-fill:hover {
+  color: var(--primary-color);
+  transform: scale(1.05);
+}

@@ -87,7 +87,10 @@
           <p class="panel-desc">Test real-time pagination stability. Newly added products appear at the top without shifting existing page results.</p>
           <form id="add-product-form">
             <div class="form-group">
-              <label for="new-name">Product Name</label>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                <label for="new-name" style="margin-bottom: 0;">Product Name</label>
+                <button type="button" class="btn-api-fill" id="btn-autofill-api">✨ Autofill via API</button>
+              </div>
               <input type="text" id="new-name" placeholder="e.g. Ultra Gaming Keyboard" required>
             </div>
             <div class="form-group">
