@@ -2,10 +2,13 @@ const { MongoClient } = require('mongodb');
 const dns = require('dns');
 
 // Workaround for ISPs (like Jio) whose DNS servers fail to resolve MongoDB Atlas SRV records
-try {
-  dns.setServers(['8.8.8.8', '8.8.4.4']);
-} catch (e) {
-  console.warn('Failed to set custom DNS servers:', e);
+// We disable this on production (Render) because it causes DNS resolution to fail there.
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    dns.setServers(['8.8.8.8', '8.8.4.4']);
+  } catch (e) {
+    console.warn('Failed to set custom DNS servers:', e);
+  }
 }
 
 require('dotenv').config();
