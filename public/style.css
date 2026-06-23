@@ -688,3 +688,15 @@ select:focus, input:focus {
     opacity: 0;
   }
 }
+
+/* Stability Demo Styles */
+.stability-demo-card .demo-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.stability-demo-card .demo-actions .btn {
+  width: 100%;
+}

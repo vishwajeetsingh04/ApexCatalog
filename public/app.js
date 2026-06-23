@@ -425,3 +425,61 @@ document.getElementById('btn-checkout').addEventListener('click', checkout);
 // Expose functions globally for onclick attributes
 window.updateQuantity = updateQuantity;
 window.removeFromCart = removeFromCart;
+
+// Simulate real-time data drift (50 products added in background)
+async function simulateBackgroundAdditions() {
+  const btn = document.getElementById('btn-simulate-additions');
+  const feedback = document.getElementById('drift-simulation-feedback');
+  if (!btn || !feedback) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Simulating...';
+  feedback.innerHTML = '';
+
+  showToast('Adding 50 products in background...', 'info');
+
+  const categories = ['Electronics', 'Clothing', 'Home & Kitchen', 'Books', 'Sports & Outdoors'];
+  const promises = [];
+
+  for (let i = 0; i < 50; i++) {
+    const name = `Background Product #${i + 1} (Simulated Live)`;
+    const category = categories[Math.floor(Math.random() * categories.length)];
+    const price = parseFloat((Math.random() * 200 + 5.99).toFixed(2));
+
+    promises.push(
+      fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, category, price })
+      }).then(r => r.json())
+    );
+  }
+
+  try {
+    const results = await Promise.all(promises);
+    const successCount = results.filter(r => r.success).length;
+
+    showToast(`Added ${successCount} products at the top!`, 'success');
+    await loadStats(); // Update total count badge in UI
+
+    feedback.innerHTML = `
+      <div class="alert alert-success" style="margin-top: 0.5rem; line-height: 1.4; border-radius: 8px; font-size: 0.8rem; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: #a7f3d0; padding: 0.75rem;">
+        <strong>🎉 Drift Test Complete!</strong><br>
+        Inserted <strong>${successCount} products</strong> at the top of the database.<br>
+        Notice that your current page contents did NOT shift or jump. Click <strong>Next Page</strong> and <strong>Previous Page</strong> to verify there are <strong>zero duplicates or missed products</strong>!
+      </div>
+    `;
+  } catch (err) {
+    console.error('Simulation failed:', err);
+    showToast('Failed to simulate additions', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Simulate 50 Background Additions';
+  }
+}
+
+// Bind stability demo buttons
+const btnSimulateAdditions = document.getElementById('btn-simulate-additions');
+if (btnSimulateAdditions) {
+  btnSimulateAdditions.addEventListener('click', simulateBackgroundAdditions);
+}

@@ -72,6 +72,16 @@
           </div>
         </div>
 
+        <!-- Real-time Stability Demo -->
+        <div class="card panel-card stability-demo-card">
+          <h3>Real-time Stability Test</h3>
+          <p class="panel-desc">Simulate concurrent database changes to verify that pagination does not drift, skip, or duplicate products.</p>
+          <div class="demo-actions">
+            <button class="btn btn-secondary btn-sm" id="btn-simulate-additions">Simulate 50 Background Additions</button>
+          </div>
+          <div id="drift-simulation-feedback" style="margin-top: 1rem;"></div>
+        </div>
+
         <div class="card panel-card add-product-card">
           <h3>Quick Add Product</h3>
           <p class="panel-desc">Test real-time pagination stability. Newly added products appear at the top without shifting existing page results.</p>
