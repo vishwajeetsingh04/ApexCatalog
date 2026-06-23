@@ -493,12 +493,14 @@ function generateUniqueProductNames(category, count) {
     
     let name = '';
     const choice = attempt % 3;
+    const uniqueSuffix = `#${num + attempt}`; // Ensure high probability of uniqueness
+
     if (choice === 0) {
-      name = `${base} ${mod}`;
+      name = `${base} ${mod} ${uniqueSuffix}`;
     } else if (choice === 1) {
-      name = `${base} (${mod} #${num})`;
+      name = `${base} (${mod} ${uniqueSuffix})`;
     } else {
-      name = `${mod} ${base}`;
+      name = `${mod} ${base} ${uniqueSuffix}`;
     }
     
     uniqueNames.add(name);

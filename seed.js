@@ -88,11 +88,14 @@ async function seed() {
       const idx = countsPerCategory[category]++;
       const bank = WORD_BANKS[category];
       
-      // Determine unique components based on index (unique combination for up to 50,625 products per category)
-      const brand = bank.brands[Math.floor(idx / 3375) % 15];
-      const adj = bank.adjectives[Math.floor(idx / 225) % 15];
-      const noun = bank.nouns[Math.floor(idx / 15) % 15];
-      const model = bank.models[idx % 15];
+      // Use a coprime multiplier (1337) with 50625 (15^4) to create a perfect bijection.
+      // This scrambles the combinations so adjacent products don't share the same brand/noun.
+      const p = (idx * 1337) % 50625;
+      
+      const brand = bank.brands[Math.floor(p / 3375) % 15];
+      const adj = bank.adjectives[Math.floor(p / 225) % 15];
+      const noun = bank.nouns[Math.floor(p / 15) % 15];
+      const model = bank.models[p % 15];
       
       const name = `${brand} ${adj} ${noun} ${model}`;
       
