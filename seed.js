@@ -2,15 +2,56 @@ const { initDB, closeDB } = require('./db');
 const crypto = require('crypto');
 
 const CATEGORIES = ['Electronics', 'Clothing', 'Home & Kitchen', 'Books', 'Sports & Outdoors', 'Beauty & Personal Care', 'Automotive', 'Toys & Games'];
-const PRODUCT_NAMES = {
-  'Electronics': ['Wireless Headphones', 'Smart Watch', 'Bluetooth Speaker', '4K Monitor', 'Mechanical Keyboard', 'Gaming Mouse', 'USB-C Hub', 'Smartphone Stand'],
-  'Clothing': ['Classic T-Shirt', 'Denim Jacket', 'Running Shoes', 'Wool Socks', 'Leather Belt', 'Slim Fit Jeans', 'Summer Dress', 'Windbreaker'],
-  'Home & Kitchen': ['Coffee Maker', 'Air Fryer', 'Chef Knife Set', 'Stainless Steel Pan', 'Food Storage Containers', 'Blender', 'Toaster Oven', 'Electric Kettle'],
-  'Books': ['Sci-Fi Novel', 'History Biography', 'Cooking Recipes', 'Self-Help Guide', 'Mystery Thriller', 'Business Strategy', 'Children Storybook', 'Poetry Collection'],
-  'Sports & Outdoors': ['Water Bottle', 'Yoga Mat', 'Resistance Bands', 'Sleeping Bag', 'Camping Tent', 'Hiking Backpack', 'Dumbbell Set', 'Bicycle Pump'],
-  'Beauty & Personal Care': ['Face Moisturizer', 'Shampoo', 'Conditioner', 'Sunscreens', 'Lip Balm', 'Scented Candle', 'Electric Toothbrush', 'Hair Dryer'],
-  'Automotive': ['Car Phone Mount', 'Microfiber Towels', 'Windshield Wipers', 'Car Vacuum Cleaner', 'Seat Organizer', 'Tire Pressure Gauge', 'Dashboard Camera', 'Jump Starter'],
-  'Toys & Games': ['Board Game', 'Jigsaw Puzzle', 'Building Blocks', 'Action Figure', 'Card Game', 'Remote Control Car', 'Plush Toy', 'Drawing Board']
+
+const WORD_BANKS = {
+  'Electronics': {
+    brands: ['Sony', 'Samsung', 'Apple', 'Dell', 'HP', 'Lenovo', 'Logitech', 'Bose', 'Sennheiser', 'LG', 'Asus', 'Acer', 'Xiaomi', 'OnePlus', 'Anker'],
+    adjectives: ['Wireless', 'Bluetooth', 'Noise-Cancelling', 'Smart', 'Gaming', 'Ergonomic', 'Portable', 'HD', '4K', 'Ultra-Slim', 'Mechanical', 'Rechargeable', 'Waterproof', 'High-Speed', 'Studio'],
+    nouns: ['Headphones', 'Watch', 'Speaker', 'Monitor', 'Keyboard', 'Mouse', 'Earbuds', 'Charger', 'Tablet', 'Laptop', 'Webcam', 'Router', 'Power Bank', 'Adapter', 'Microphone'],
+    models: ['X100', 'V2', 'Pro', 'Max', 'G5', 'Series 7', 'Ultra', 'Elite', 'Plus', 'Air', 'Standard', 'Lite', 'Nova', 'Alpha', 'Prime']
+  },
+  'Clothing': {
+    brands: ['Nike', 'Adidas', 'Puma', 'Under Armour', 'Levis', 'Zara', 'H&M', 'Tommy Hilfiger', 'Calvin Klein', 'Ralph Lauren', 'Uniqlo', 'Champion', 'Reebok', 'Gap', 'Patagonia'],
+    adjectives: ['Classic', 'Sporty', 'Slim-Fit', 'Oversized', 'Casual', 'Formal', 'Breathable', 'Thermal', 'Waterproof', 'Vintage', 'Modern', 'Graphic', 'Seamless', 'Stretch', 'Cozy'],
+    nouns: ['T-Shirt', 'Jacket', 'Hoodie', 'Pants', 'Jeans', 'Socks', 'Belt', 'Shoes', 'Sneakers', 'Sweater', 'Shorts', 'Coat', 'Scarf', 'Gloves', 'Hat'],
+    models: ['Premium', 'Essential', 'Performance', 'Comfort', 'Active', 'All-Weather', 'Urban', 'Daily', 'Retro', 'Signature', 'Vanguard', 'Legacy', 'Explorer', 'Elite', 'Flex']
+  },
+  'Home & Kitchen': {
+    brands: ['Philips', 'Breville', 'Instant Pot', 'Cuisinart', 'Keurig', 'Ninja', 'Dyson', 'KitchenAid', 'T-fal', 'Le Creuset', 'Pyrex', 'Oxo', 'Shark', 'iRobot', 'Hamilton Beach'],
+    adjectives: ['Electric', 'Automatic', 'Stainless Steel', 'Non-Stick', 'Compact', 'Multi-Functional', 'Cordless', 'Heavy-Duty', 'Ergonomic', 'Smart', 'Quiet', 'Eco-Friendly', 'Precision', 'Digital', 'Rapid'],
+    nouns: ['Coffee Maker', 'Air Fryer', 'Blender', 'Toaster', 'Kettle', 'Food Processor', 'Juicer', 'Microwave', 'Knife Set', 'Pan', 'Pot', 'Vacuum Cleaner', 'Air Purifier', 'Humidifier', 'Scale'],
+    models: ['Pro', 'Express', 'Classic', 'Elite', 'Touch', 'Smart', 'Plus', 'Max', 'Duo', 'Deluxe', 'Compact', 'Select', 'Supreme', 'Chef Edition', 'Precision']
+  },
+  'Books': {
+    brands: ['Penguin', 'HarperCollins', 'Simon & Schuster', 'Macmillan', 'Hachette', 'Random House', 'Scholastic', 'Oxford', 'Cambridge', 'Chronicle', 'Vintage', 'Signet', 'Bantam', 'Pocket', 'Anchor'],
+    adjectives: ['Lost', 'Secret', 'Silent', 'Forgotten', 'Dark', 'Golden', 'Eternal', 'Hidden', 'Last', 'First', 'Future', 'Ancient', 'Strange', 'Beautiful', 'Broken'],
+    nouns: ['Chronicles', 'Empire', 'Journey', 'Legacy', 'Shadow', 'Kingdom', 'Prophecy', 'Voyage', 'Whisper', 'Song', 'Path', 'Echo', 'Destiny', 'Alliance', 'Dreamer'],
+    models: ['Vol 1', 'Vol 2', 'Trilogy', 'Special Edition', 'Illustrated', 'Annotated', 'Revised', 'Collector\'s', 'Unabridged', 'Standard', 'Hardcover', 'Paperback', 'Audiobook', 'Draft', 'Manuscript']
+  },
+  'Sports & Outdoors': {
+    brands: ['Columbia', 'The North Face', 'Garmin', 'Coleman', 'CamelBak', 'Spalding', 'Wilson', 'Everlast', 'Yeti', 'Rawlings', 'Callaway', 'Speedo', 'Oakley', 'Shimano', 'Giro'],
+    adjectives: ['Outdoor', 'Camping', 'Hiking', 'Athletic', 'Heavy-Duty', 'Lightweight', 'All-Terrain', 'Waterproof', 'Thermal', 'Shockproof', 'Compact', 'Adjustable', 'Protective', 'Aerodynamic', 'Ventilated'],
+    nouns: ['Backpack', 'Tent', 'Sleeping Bag', 'Water Bottle', 'GPS Watch', 'Basketball', 'Football', 'Tennis Racket', 'Helmet', 'Bicycle', 'Dumbbell', 'Yoga Mat', 'Resistance Band', 'Goggles', 'Compass'],
+    models: ['Explorer', 'Summit', 'Ranger', 'Pro', 'Trail', 'Navigator', 'Active', 'Combat', 'Outpost', 'Vanguard', 'Alpha', 'Apex', 'Trek', 'Cruiser', 'Patrol']
+  },
+  'Beauty & Personal Care': {
+    brands: ['L\'Oreal', 'Maybelline', 'Estee Lauder', 'Clinique', 'Nivea', 'Dove', 'Olay', 'Neutrogena', 'CeraVe', 'Garnier', 'MAC', 'Sephora', 'Colgate', 'Gillette', 'Oral-B'],
+    adjectives: ['Hydrating', 'Moisturizing', 'Anti-Aging', 'Organic', 'Natural', 'Gentle', 'Revitalizing', 'Nourishing', 'Soothing', 'Brightening', 'Exfoliating', 'Cruelty-Free', 'Vegan', 'Refreshing', 'Pure'],
+    nouns: ['Cream', 'Serum', 'Lotion', 'Shampoo', 'Conditioner', 'Face Wash', 'Sunscreen', 'Lip Balm', 'Cleanser', 'Mask', 'Scrub', 'Toothbrush', 'Toothpaste', 'Razor', 'Deodorant'],
+    models: ['Daily Care', 'Sensitive', 'Ultra', 'Pro', 'Classic', 'Essential', 'Advanced', 'Active', 'Therapy', 'Restore', 'Defense', 'Glow', 'Renew', 'Smooth', 'Refresh']
+  },
+  'Automotive': {
+    brands: ['Bosch', 'Michelin', 'Castrol', 'Meguiar\'s', 'Garmin', 'Pioneer', 'Kenwood', 'Black & Decker', 'Anker', 'NOCO', 'VIOS', 'Philips', 'Turtle Wax', 'Rain-X', 'Mobil 1'],
+    adjectives: ['Synthetic', 'High-Performance', 'Heavy-Duty', 'Portable', 'Digital', 'Automatic', 'Universal', 'Waterproof', 'Scratch-Resistant', 'Ultra-Bright', 'Quick-Release', 'Multi-Purpose', 'Wireless', 'Anti-Slip', 'Compact'],
+    nouns: ['Motor Oil', 'Car Wax', 'Phone Mount', 'Vacuum Cleaner', 'Jump Starter', 'Wiper Blade', 'Tire Gauge', 'Dash Cam', 'Seat Cover', 'Floor Mat', 'Charger', 'Tire Inflator', 'Tool Kit', 'LED Bulbs', 'Air Freshener'],
+    models: ['Pro', 'Max', 'Ultra', 'Premium', 'Standard', 'Plus', 'Series 3', 'Elite', 'Signature', 'Vanguard', 'Force', 'Classic', 'Sport', 'All-Season', 'Heavy']
+  },
+  'Toys & Games': {
+    brands: ['Lego', 'Hasbro', 'Mattel', 'Nerf', 'Fisher-Price', 'Barbie', 'Hot Wheels', 'Monopoly', 'Nintendo', 'Play-Doh', 'Ravensburger', 'Melissa & Doug', 'VTech', 'Funko', 'Crayola'],
+    adjectives: ['Interactive', 'Educational', 'Creative', 'Mechanical', 'Electronic', 'Wooden', 'Plush', 'Colorful', 'Magnetic', 'Tactile', 'Puzzle', 'Strategy', 'Cooperative', 'Classic', 'Miniature'],
+    nouns: ['Building Set', 'Board Game', 'Action Figure', 'Puzzle', 'Card Game', 'Blaster', 'Doll', 'Toy Car', 'Drawing Board', 'Microphone', 'Robot', 'Modeling Clay', 'Train Set', 'Laptop', 'Blocks'],
+    models: ['Edition 1', 'Series 2', 'Collector\'s', 'Deluxe', 'Classic', 'Junior', 'Pro', 'Smart', 'Master', 'Explorer', 'Starter Kit', 'Family Pack', 'Special', 'Ultimate', 'Lite']
+  }
 };
 
 async function seed() {
@@ -29,7 +70,13 @@ async function seed() {
   const BATCH_SIZE = 10000;
   let seededCount = 0;
 
-  console.log(`Generating and inserting ${TOTAL_PRODUCTS} products in batches of ${BATCH_SIZE}...`);
+  // Track product name counts for deterministic uniqueness
+  const countsPerCategory = {};
+  CATEGORIES.forEach(cat => {
+    countsPerCategory[cat] = 0;
+  });
+
+  console.log(`Generating and inserting ${TOTAL_PRODUCTS} completely unique products in batches of ${BATCH_SIZE}...`);
 
   for (let i = 0; i < TOTAL_PRODUCTS; i += BATCH_SIZE) {
     const productsBatch = [];
@@ -37,8 +84,17 @@ async function seed() {
     for (let j = 0; j < BATCH_SIZE; j++) {
       const currentIdx = i + j;
       const category = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
-      const namesList = PRODUCT_NAMES[category];
-      const baseName = namesList[Math.floor(Math.random() * namesList.length)];
+      
+      const idx = countsPerCategory[category]++;
+      const bank = WORD_BANKS[category];
+      
+      // Determine unique components based on index (unique combination for up to 50,625 products per category)
+      const brand = bank.brands[Math.floor(idx / 3375) % 15];
+      const adj = bank.adjectives[Math.floor(idx / 225) % 15];
+      const noun = bank.nouns[Math.floor(idx / 15) % 15];
+      const model = bank.models[idx % 15];
+      
+      const name = `${brand} ${adj} ${noun} ${model}`;
       
       // Realistic prices from $5.99 to $999.99
       const price = parseFloat((Math.random() * 994 + 5.99).toFixed(2));
@@ -50,9 +106,9 @@ async function seed() {
 
       productsBatch.push({
         id: crypto.randomUUID(), // Generates a unique UUID v4
-        name: `${baseName} (Gen #${currentIdx + 1})`,
-        category: category,
-        price: price,
+        name,
+        category,
+        price,
         created_at: createdAt,
         updated_at: updatedAt
       });
@@ -65,7 +121,7 @@ async function seed() {
   }
 
   const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-  console.log(`\nSUCCESS: Seeded ${seededCount} products in ${duration} seconds!`);
+  console.log(`\nSUCCESS: Seeded ${seededCount} completely unique products in ${duration} seconds!`);
   
   await closeDB();
 }
